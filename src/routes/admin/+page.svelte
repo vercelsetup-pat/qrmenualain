@@ -117,6 +117,50 @@
 		}
 		askDelete('categories', group.id);
 	}
+
+	// Editing an item (name, price or category)
+	let editingId = $state<number | null>(null);
+	let editName = $state('');
+	let editPrice = $state<number | null>(null);
+	let editCategoryId = $state<number | null>(null);
+
+	function startEdit(item: Item) {
+		error = '';
+		confirming = '';
+		editingId = item.id;
+		editName = item.name;
+		editPrice = Number(item.price);
+		editCategoryId = item.categoryId;
+	}
+
+	function cancelEdit() {
+		editingId = null;
+	}
+
+	async function saveEdit(e: SubmitEvent) {
+		e.preventDefault();
+		if (editingId === null) return;
+		error = '';
+
+		const res = await fetch(`/api/items/${editingId}`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				name: editName.trim(),
+				price: editPrice,
+				categoryId: editCategoryId
+			})
+		});
+
+		if (!res.ok) {
+			error = "Couldn't save the changes. Check the details and try again.";
+			return;
+		}
+
+		editingId = null;
+		await load();
+		flash('Item updated');
+	}
 </script>
 
 <svelte:head>
@@ -159,21 +203,61 @@
 						{#if group.items.length > 0}
 							<ul>
 								{#each group.items as item (item.id)}
-									<li>
-										<span class="name">{item.name}</span>
-										<span class="leader" aria-hidden="true"></span>
-										<span class="price">{formatPrice(item.price)}</span>
-										<button
-											type="button"
-											class="delete"
-											class:confirm={confirming === `items-${item.id}`}
-											aria-label="Delete {item.name}"
-											onclick={() => askDelete('items', item.id)}
-											onblur={() => (confirming = '')}
-										>
-											{confirming === `items-${item.id}` ? 'Confirm' : 'Delete'}
-										</button>
-									</li>
+									{#if editingId === item.id}
+										<li class="editing">
+											<form class="edit-form" onsubmit={saveEdit}>
+												<input
+													aria-label="Item name"
+													bind:value={editName}
+													required
+													maxlength="150"
+													autocomplete="off"
+												/>
+												<input
+													aria-label="Price (LBP)"
+													type="number"
+													inputmode="numeric"
+													step="1"
+													min="0"
+													bind:value={editPrice}
+													required
+												/>
+												<select aria-label="Category" bind:value={editCategoryId} required>
+													{#each categories as c (c.id)}
+														<option value={c.id}>{c.name}</option>
+													{/each}
+												</select>
+												<div class="edit-actions">
+													<button class="primary small">Save changes</button>
+													<button type="button" class="edit" onclick={cancelEdit}>Cancel</button>
+												</div>
+											</form>
+										</li>
+									{:else}
+										<li>
+											<span class="name">{item.name}</span>
+											<span class="leader" aria-hidden="true"></span>
+											<span class="price">{formatPrice(item.price)}</span>
+											<button
+												type="button"
+												class="edit"
+												aria-label="Edit {item.name}"
+												onclick={() => startEdit(item)}
+											>
+												Edit
+											</button>
+											<button
+												type="button"
+												class="delete"
+												class:confirm={confirming === `items-${item.id}`}
+												aria-label="Delete {item.name}"
+												onclick={() => askDelete('items', item.id)}
+												onblur={() => (confirming = '')}
+											>
+												{confirming === `items-${item.id}` ? 'Confirm' : 'Delete'}
+											</button>
+										</li>
+									{/if}
 								{/each}
 							</ul>
 						{:else}
@@ -494,6 +578,56 @@
 	.delete:focus-visible {
 		outline: 2px solid var(--danger);
 		outline-offset: 2px;
+	}
+
+	.edit {
+		flex-shrink: 0;
+		padding: 0.15rem 0.5rem;
+		border: 0;
+		border-radius: 6px;
+		background: transparent;
+		color: var(--muted);
+		font: inherit;
+		font-size: 0.85rem;
+		cursor: pointer;
+	}
+
+	.edit:hover {
+		color: var(--leaf-dark);
+		text-decoration: underline;
+	}
+
+	.edit:focus-visible {
+		outline: 2px solid var(--leaf);
+		outline-offset: 2px;
+	}
+
+	li.editing {
+		display: block;
+		padding: 0.5rem 0;
+	}
+
+	.edit-form {
+		grid-template-columns: 1fr 9rem;
+		gap: 0.5rem;
+		padding: 0.75rem;
+		border-radius: 12px;
+		background: var(--mint);
+	}
+
+	.edit-form select,
+	.edit-actions {
+		grid-column: 1 / -1;
+	}
+
+	.edit-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.primary.small {
+		padding: 0.5rem 1rem;
 	}
 
 	.hint {
