@@ -132,7 +132,7 @@
 		--bg: #181818;
 		--card: #272727;
 		--line: #363636;
-		--coral: #f0877e;
+		--coral: #0d6fc5;
 		--text: #f4f1ee;
 		--muted: #a0a0a0;
 
@@ -233,7 +233,7 @@
 		outline-offset: 2px;
 	}
 
-	/* Items as a timeline */
+	/* Items */
 	.content {
 		max-width: 680px;
 		margin-inline: auto;
@@ -266,49 +266,31 @@
 	}
 
 	.timeline li {
-		position: relative;
 		margin-bottom: 0.75rem;
-		padding-left: 2.25rem;
-	}
-
-	/* the dot */
-	.timeline li::before {
-		content: '';
-		position: absolute;
-		z-index: 1;
-		top: 50%;
-		left: 0;
-		width: 14px;
-		height: 14px;
-		margin-top: -7px;
-		border-radius: 50%;
-		background: var(--coral);
-		box-shadow: 0 0 0 4px rgb(240 135 126 / 0.2);
-	}
-
-	/* the line down to the next dot */
-	.timeline li::after {
-		content: '';
-		position: absolute;
-		top: 50%;
-		left: 6px;
-		width: 2px;
-		height: calc(100% + 0.75rem);
-		background: rgb(240 135 126 / 0.35);
-	}
-
-	.timeline li:last-child::after {
-		display: none;
 	}
 
 	.card {
+		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
-		padding: 1rem 1.1rem;
+		padding: 1rem 1.1rem 1rem 1.6rem;
 		border-radius: 14px;
 		background: var(--card);
+	}
+
+	/* short coral bar before the item name */
+	.card::before {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 0.7rem;
+		width: 4px;
+		height: 1.4rem;
+		margin-top: -0.7rem;
+		border-radius: 999px;
+		background: var(--coral);
 	}
 
 	.name {
